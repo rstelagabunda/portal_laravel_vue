@@ -57,17 +57,11 @@
               </span>
               <br />
               <a class="animate__animated animate__flipInX chip white">
-                <i
-                  v-if="!obat_retur"
-                  class="green-text fa fa-check-circle"
-                ></i>
+                <i v-if="!obat_retur" class="green-text fa fa-check-circle"></i>
                 <span>Resep Obat</span>
               </a>
               <a class="animate__animated animate__flipInX chip white">
-                <i
-                 v-if="obat_retur"
-                  class="green-text fa fa-check-circle"
-                ></i>
+                <i v-if="obat_retur" class="green-text fa fa-check-circle"></i>
                 <span>Resep Retur</span>
               </a>
               <!-- search obat list -->
@@ -98,7 +92,11 @@
               <!-- {{current_order.NoResep.substr(0,2).toUpperCase()}} -->
 
               <i class="fa fa-coins">
-                <span class="chip green-text white" style="font-weight:bold;font-size:20px">{{ get_totalresep("id") | currency }}</span>
+                <span
+                  class="chip green-text white"
+                  style="font-weight: bold; font-size: 20px"
+                  >{{ totalresep | currency }}</span
+                >
               </i>
 
               <!-- <div class="center-align"> -->
@@ -308,19 +306,17 @@
                       <span class="chip">{{ type.TotalHarga | currency }}</span>
                     </span>
                   </div>
-<div class="col s2" style="margin-top: 20px">
+                  <div class="col s2" style="margin-top: 20px">
                     <span>
                       <i
-                class="chip fa fa-trash-alt red-text"
-                @click="delete_ordertype(type.OrderTypeID)"
-              >
-                
-              </i>
-                    hapus  
+                        class="chip fa fa-trash-alt red-text"
+                        @click="delete_ordertype(type.OrderTypeID)"
+                      >
+                      </i>
+                      hapus
                     </span>
                   </div>
 
-                  
                   <!-- <a>
                     <i class="fa fa-print" style="font-size:15px;margin-top:15px">&nbsp;Cetak Semua</i>
                   </a>-->
@@ -420,9 +416,7 @@
                                     ? obt.list_obat[0].availability +
                                       (obt.ProductID ==
                                       obt.list_obat[0]['Product ID']
-                                        ? (obat_retur
-                                            ? -1
-                                            : 1) * old_qty
+                                        ? (obat_retur ? -1 : 1) * old_qty
                                         : 0)
                                     : 1
                                 "
@@ -634,10 +628,7 @@
                               product_selected(type, obt, obat, 'update')
                             "
                           >
-                            <div
-                              v-if="!obat_retur"
-                              
-                            >
+                            <div v-if="!obat_retur">
                               <!-- <img :src="'/images/avatar/'+dok.foto" alt class="circle" /> -->
                               <span style="color: black">
                                 {{ obat["Product Name"] }}
@@ -746,11 +737,7 @@
                                 >
                               </span>
                             </div> -->
-                            <div
-                              v-if="
-                                obat_retur
-                              "
-                            >
+                            <div v-if="obat_retur">
                               <!-- <img :src="'/images/avatar/'+dok.foto" alt class="circle" /> -->
                               <span style="color: black">
                                 {{ obat["Product Name"] }}
@@ -883,9 +870,7 @@
                               >
                             </span>
                           </div> -->
-                          <div
-                            v-if="!obat_retur"
-                          >
+                          <div v-if="!obat_retur">
                             <!-- <img :src="'/images/avatar/'+dok.foto" alt class="circle" /> -->
                             <span style="color: black">
                               {{ obat["Product Name"] }}
@@ -961,6 +946,7 @@ export default {
   },
   data() {
     return {
+      totalresep: 0,
       old_qty: 0,
       cur_noreg: "",
       search: {
@@ -995,6 +981,19 @@ export default {
       active: 0,
     };
   },
+  watch: {
+    current_resep: function (val) {
+      //console.log(val);
+      //console.log('watching total getting changed');
+      let total = 0;
+      this.totalresep = 0;
+      this.current_resep.forEach((element) => {
+        total = parseFloat(total) + parseFloat(element.TotalHarga);
+        this.totalresep = total;
+      });
+      this.totalresep = total;
+    },
+  },
   created() {
     window.addEventListener("scroll", this.handleScroll);
   },
@@ -1003,23 +1002,26 @@ export default {
   },
   mounted() {
     let resep = this.$route.params.id.split("_");
-    // ////////console.log('hello'+resep);
+    // //////////console.log('hello'+resep);
     // let all_receipts=this.$store.getters.list_resep.list_resep;
     this.active = resep[1].substr(0, 2).toLowerCase() == "rj" ? 0 : 1;
     let res = resep[1];
     let reg = res.substr(0, resep[1].length - 3);
-    reg = reg.substr(0,1).toUpperCase()=='B'?'':reg;
-    this.cur_noreg=reg;
+    reg = reg.substr(0, 1).toUpperCase() == "B" ? "" : reg;
+    this.cur_noreg = reg;
     this.get_pasien_details({ NoRegistrasi: reg, resep: res });
   },
   computed: {
-    obat_retur(){
-      let ret=false;
-        console.log(this.current_order.NoResep.substr(0,1).toUpperCase()!='B');
+    obat_retur() {
+      let ret = false;
+      //console.log(this.current_order.NoResep.substr(0, 1).toUpperCase() != "B");
 
-      if(this.current_order){
-        if(this.current_order.NoResep.substr(0,1).toUpperCase()!='B' && this.current_order.TypeTransaction=='2'){
-          ret=true;
+      if (this.current_order) {
+        if (
+          this.current_order.NoResep.substr(0, 1).toUpperCase() != "B" &&
+          this.current_order.TypeTransaction == "2"
+        ) {
+          ret = true;
         }
       }
       return ret;
@@ -1041,11 +1043,11 @@ export default {
     },
     product_types() {
       let temp_pt = this.$store.getters.mstr_product_type;
-      //////////////console.log(temp_pt);
+      ////////////////console.log(temp_pt);
       //return;
       if (temp_pt ? temp_pt.length > 0 : temp_pt) {
         this.resep = temp_pt;
-        ////////////////console.log(this.resep);
+        //////////////////console.log(this.resep);
         this.resep.forEach((element) => {
           element["list"] = [];
         });
@@ -1090,7 +1092,7 @@ export default {
         })
         .then((response) => {});
     },
-    
+
     delete_order() {
       if (confirm("Apakah Anda yakin hapus resep tsb !")) {
       } else {
@@ -1099,10 +1101,8 @@ export default {
       axios
         .post("/api/delete_order", { orderid: this.current_order["Order ID"] })
         .then((response) => {
+          this.$router.push("/farmasi");
 
-          
-      this.$router.push('/farmasi');
-    
           // this.get_reciepts(
           //   this.current_order.NoResep.substr(
           //     0,
@@ -1115,12 +1115,15 @@ export default {
           // );
         });
     },
-    get_totalresep(id) {
-      let total = 0;
-      this.current_resep.forEach((element) => {
-        total = parseFloat(total) + parseFloat(element.TotalHarga);
-      });
-      return total;
+    get_totalresep(id = 0) {
+      // //console.log("entered to save total");
+      // let total = 0;
+      // this.totalresep = 0;
+      // this.current_resep.forEach((element) => {
+      //   total = parseFloat(total) + parseFloat(element.TotalHarga);
+      //   this.totalresep = total;
+      // });
+      // this.totalresep = total;
     },
     get_total_all_resep() {
       let total = 0;
@@ -1134,28 +1137,27 @@ export default {
       let st = "";
       this.product_types.forEach((element) => {
         if (parseInt(element.ProductTypeID) == parseInt(id)) {
-          //////console.log(element.ProductType);
-          // //////console.log(id);
-          //////console.log("success");
+          ////////console.log(element.ProductType);
+          // ////////console.log(id);
+          ////////console.log("success");
           st = element.ProductType;
         }
       });
       return st;
     },
     type_changed(ptypeid, type) {
-      // ////console.log("change event trigered");
+      // //////console.log("change event trigered");
       let ptype = {};
       this.product_types.forEach((element) => {
-        // ////console.log('list id'+ element.ProductTypeID);
-        // ////console.log('compare id'+ JSON.stringify(ptypeid));
+        // //////console.log('list id'+ element.ProductTypeID);
+        // //////console.log('compare id'+ JSON.stringify(ptypeid));
         if (
           parseInt(element.ProductTypeID) == parseInt(ptypeid.ProductTypeID)
         ) {
           ptype = element;
-          type.UangR =
-            (this.obat_retur ? -1 : 1) * ptype.UangR;
+          type.UangR = (this.obat_retur ? -1 : 1) * ptype.UangR;
           type.ProductTypeID = ptype.ProductTypeID;
-          // ////console.log(type);
+          //console.log(type);
 
           this.save_ordertype(type, 0);
         }
@@ -1169,16 +1171,22 @@ export default {
       axios
         .post("/api/delete_ordertype", { OrderTypeID: id })
         .then((response) => {
-this.get_obat(this.current_order);
+          this.get_obat(this.current_order);
         });
     },
     save_ordertype(type, state) {
       let harga = 0;
-      //////console.log(type);
-      if (state == 1) {
-        // //////console.log("begins");
+      ////////console.log(type);
+
+      // if (type.list) {
+
+      //console.log(type);
+      if (type.list) {
+        state = 1;
+        // }
+        // ////////console.log("begins");
         type.list.forEach((element) => {
-          // //////console.log(harga + " - each is " + element["List Price"]);
+          // ////////console.log(harga + " - each is " + element["List Price"]);
           harga =
             parseInt(harga) +
             parseInt(
@@ -1189,7 +1197,7 @@ this.get_obat(this.current_order);
       let type_ = {
         Dosis: null,
         ED: null,
-        Harga: state == 0 ? 0 : harga,
+        Harga: harga,
         Note1: null,
         Note2: null,
         OrderID: state == 0 ? this.current_resep_data.orderid : type.OrderID,
@@ -1202,6 +1210,10 @@ this.get_obat(this.current_order);
         discount: "0.0",
       };
       axios.post("/api/save_ordertype", type_).then((response) => {
+        type.TotalHarga=(state == 0) ? 0 : parseInt(harga) + parseInt(type.UangR);
+        let cur=this.current_resep;
+        this.current_resep=null;
+        this.current_resep=cur;
         state == 0 ? this.get_obat(this.current_order) : "";
       });
     },
@@ -1210,16 +1222,15 @@ this.get_obat(this.current_order);
       return date;
     },
     product_selected(type, ref_obt, product, status) {
-      // ////////console.log(product);
+      // //////////console.log(product);
       ref_obt.ProductID = product["Product ID"];
       ref_obt["Product Name"] = product["Product Name"];
       ref_obt.show_list = false;
-      ref_obt.unit =
-        this.obat_retur
-          ? product["Unit Price"]
-          : this.current_resep_data.nama.substr(0, 2).toUpperCase() == "RJ"
-          ? product["list Price Resep"]
-          : product["List Price RI"];
+      ref_obt.unit = this.obat_retur
+        ? product["Unit Price"]
+        : this.current_resep_data.nama.substr(0, 2).toUpperCase() == "RJ"
+        ? product["list Price Resep"]
+        : product["List Price RI"];
       if (status == "update") {
         this.update_obat_detail(type, ref_obt);
       }
@@ -1238,7 +1249,7 @@ this.get_obat(this.current_order);
         detail_id: null,
         show_list: false,
       };
-      ////////console.log(
+      //////////console.log(
       //   "current obat is" +
       //     JSON.stringify(this.current_resep[ind_type].list[ind_obat])
       // );
@@ -1252,9 +1263,7 @@ this.get_obat(this.current_order);
             OrdertypeID: obt.OrderTypeID,
             "Product ID": obt.ProductID,
             Locationstok: 2,
-            Quantity:
-              (this.obat_retur ? -1 : 1) *
-              obt.Quantity,
+            Quantity: (this.obat_retur ? -1 : 1) * obt.Quantity,
             Dosis: obt.Dosis,
             Signa: obt.Signa,
             ED: obt.Expired,
@@ -1267,12 +1276,9 @@ this.get_obat(this.current_order);
           },
           inv: {
             "Transaction ID": obt["Inventory ID"] ? obt["Inventory ID"] : null,
-            "Transaction Type":
-              this.obat_retur ? 5 : 2,
+            "Transaction Type": this.obat_retur ? 5 : 2,
             "Product ID": obt.ProductID,
-            Quantity:
-              (this.obat_retur ? -1 : 1) *
-              obt.Quantity,
+            Quantity: (this.obat_retur ? -1 : 1) * obt.Quantity,
             "Customer Order ID": obt.OrderID,
             LocationInv: this.obat_retur ? 0 : 2,
           },
@@ -1302,10 +1308,10 @@ this.get_obat(this.current_order);
         });
     },
     select_obat(obat, ind_type, ind_obat) {
-      ////////console.log(ind_type);
-      ////////console.log(ind_obat);
-      // ////////console.log('obat passed is'+JSON.stringify(obat));
-      // ////////console.log('obat jadi'+JSON.stringify(this.current_resep[ind_type]));
+      //////////console.log(ind_type);
+      //////////console.log(ind_obat);
+      // //////////console.log('obat passed is'+JSON.stringify(obat));
+      // //////////console.log('obat jadi'+JSON.stringify(this.current_resep[ind_type]));
       obat.ProductID = 112;
       this.current_resep[ind_type].list[ind_obat].ProductID = 770;
     },
@@ -1320,17 +1326,17 @@ this.get_obat(this.current_order);
       // setSelectionRange(0, search.length);
     },
     get_obatlist(obj, search) {
-      ////console.log(search);
+      //////console.log(search);
       let cur = this.current_order;
       let reg = this.cur_noreg;
-      let obat_retur=this.obat_retur;
+      let obat_retur = this.obat_retur;
       if (this.typingTimer) {
         clearTimeout(this.typingTimer);
       }
       this.typingTimer = setTimeout(function () {
         // this.typingTimer=1;
         // if(this.typingTimer==1){
-          // //console.log('status of obat '+this.obat_retur);
+        // ////console.log('status of obat '+this.obat_retur);
         if (obat_retur) {
           if (true) {
             let temp = [];
@@ -1338,9 +1344,9 @@ this.get_obat(this.current_order);
               .post("/api/jumlah_obat", { noreg: reg }, {})
               .then((response) => {
                 temp = response.data.list_product;
-                ////console.log(response.data);
+                //////console.log(response.data);
 
-                ////console.log(temp);
+                //////console.log(temp);
                 let obj_temp = [];
                 temp.forEach((element) => {
                   {
@@ -1359,12 +1365,11 @@ this.get_obat(this.current_order);
                     }
                   }
                 });
-                ////console.log(obj_temp);
+                //////console.log(obj_temp);
                 obj.list_obat = [];
                 obj_temp.forEach((element) => {
-                  // //console.log(element["Product Name"].includes(search));
+                  // ////console.log(element["Product Name"].includes(search));
                   if (
-                    
                     element["Product Name"]
                       .toUpperCase()
                       .includes(search.toUpperCase()) &&
@@ -1405,17 +1410,17 @@ this.get_obat(this.current_order);
       });
       var scrollPosition =
         document.documentElement.scrollTop || document.body.scrollTop;
-      //  //////////console.log(sections);
+      //  ////////////console.log(sections);
       if (sections != undefined) {
         for (i in sections) {
           if (sections[i] <= scrollPosition) {
             // if (scrollPosition >= sections[i]+5 || scrollPosition <= sections[i]-5) {
-            //////////console.log(sections[i]);
-            //////////console.log('scroll is'+scrollPosition);
+            ////////////console.log(sections[i]);
+            ////////////console.log('scroll is'+scrollPosition);
             if (i) {
               this.change_class(i);
             }
-            //  //////////console.log(sections[sections.length-1]);
+            //  ////////////console.log(sections[sections.length-1]);
           }
         }
       }
@@ -1433,7 +1438,7 @@ this.get_obat(this.current_order);
         .then((response) => {
           let list = [];
 
-          // //////console.log(resep);
+          // ////////console.log(resep);
           this.resep = [];
           let resep = [];
           this.current_resep = [];
@@ -1512,35 +1517,35 @@ this.get_obat(this.current_order);
       //    if(this.list_etickets.length!=0){
       //     this.list_etickets.forEach((element,ind) => {
       //         if(element!=id){
-      //         // //////////////console.log('not empty');
-      //             // //////////////console.log(this.list_etickets);
-      //             // //////////////console.log(element);
-      //             // //////////////console.log(id);
+      //         // ////////////////console.log('not empty');
+      //             // ////////////////console.log(this.list_etickets);
+      //             // ////////////////console.log(element);
+      //             // ////////////////console.log(id);
       //             this.list_etickets.push(id);
       //         }
       //         else if(element==id){
-      //             //////////////console.log("match"+this.list_etickets);
+      //             ////////////////console.log("match"+this.list_etickets);
       //             this.list_etickets.splice(ind,1);
       //         }
       //     });
       //    }
       //      else{
-      //          //////////////console.log('empty'+id);
+      //          ////////////////console.log('empty'+id);
       //             this.list_etickets.push(id);
-      //             // //////////////console.log(this.list_etickets);
+      //             // ////////////////console.log(this.list_etickets);
       //     }
     },
     get_reciepts(reg, resep) {
       // add api call to get reseps instead of dispatch action
-      //console.log(resep+'- no reg is ');
+      ////console.log(resep+'- no reg is ');
       axios
         .post("/api/allresep", {
           resep: resep,
-          type: reg==''?resep.substr(0,1):reg.substr(0, 2),
+          type: reg == "" ? resep.substr(0, 1) : reg.substr(0, 2),
           noreg: reg,
         })
         .then((response) => {
-          // ////////console.log(response);
+          // //////////console.log(response);
           // if(response.data.list_resep.length==0 || response.data.list_resep[0].)
           if (response.data.list_resep.length == 0) {
             this.insert_resep();
@@ -1550,7 +1555,7 @@ this.get_obat(this.current_order);
             } else {
               // this.insert_resep();
               response.data.list_resep.forEach((element) => {
-                //console.log(resep.substr(0,1).toUpperCase()+'resep first leter')
+                ////console.log(resep.substr(0,1).toUpperCase()+'resep first leter')
                 if (resep == element.NoResep) {
                   this.get_reciepts_pasien(element);
                 }
@@ -1575,14 +1580,13 @@ this.get_obat(this.current_order);
             })[0]["NoUrut"]
           ) + 1;
       }
-      //////console.log("nomor urut" + nourut);
+      ////////console.log("nomor urut" + nourut);
       let resep = {
         "Employee ID": this.user.apotikemp_id,
         Dokter: this.pasien_detail.Doctor_1,
         NoUrut: nourut,
         JenisResep: null,
-        NoResep:
-          this.cur_noreg + "-" + ("0" + nourut).slice(-2),
+        NoResep: this.cur_noreg + "-" + ("0" + nourut).slice(-2),
         tglResep: new Date(),
         NoRegistrasi: this.cur_noreg,
         "Customer ID": this.pasien_detail.customer,
@@ -1595,20 +1599,19 @@ this.get_obat(this.current_order);
       axios
         .post("/api/insert_order", resep)
         .then((response) => {
-          ////console.log("asdfasf");
-          ////console.log(response);
+          //////console.log("asdfasf");
+          //////console.log(response);
           this.get_pasien_details({
             NoRegistrasi: this.cur_noreg,
-            resep:
-              this.cur_noreg + "-" + ("0" + nourut).slice(-2),
+            resep: this.cur_noreg + "-" + ("0" + nourut).slice(-2),
           });
         })
         .catch((e) => {
-          ////console.log(e.message);
+          //////console.log(e.message);
         });
     },
     get_pasien_details(reg) {
-      //console.log(reg);
+      ////console.log(reg);
       if (reg.resep.substr(0, 1) == "B") {
         this.get_reciepts(reg.NoRegistrasi, reg.resep);
         this.pasien_detail = {
@@ -1652,7 +1655,7 @@ this.get_obat(this.current_order);
       //     this.$store.getters.randomstring
       // );
       // return true;
-      ////////console.log(reg);
+      //////////console.log(reg);
       // this.current_order = reg;
       this.current_resep_data.operator = reg["First Name"]
         ? reg["First Name"]
@@ -1682,15 +1685,15 @@ this.get_obat(this.current_order);
       this.$router.push(path);
     },
     scroll_to(id) {
-      // ////////////console.log(id);
+      // //////////////console.log(id);
       setTimeout(function () {
         document.getElementById(id).scrollIntoView();
       }, 100);
     },
     change_class(id) {
-      // ////////////console.log('changed');
-      // ////////console.log(id);
-      // ////////console.log(this.current_resep);
+      // //////////////console.log('changed');
+      // //////////console.log(id);
+      // //////////console.log(this.current_resep);
       this.current_resep.forEach((element) => {
         if (document.getElementById("active" + element.OrderTypeID)) {
           if (element.OrderTypeID == id) {

@@ -255,9 +255,11 @@ class farmasiController extends Controller
         } else {
             $type = new tblOrderType();
         }
-        $input = json_decode(json_encode(collect($request)->except(['OrderTypeID'])), true);
+        $input = json_decode(json_encode(collect($request)->except(['OrderTypeID','updated_at'])), true);
         // dd($input);
-        $type->fill($input)->save();
+        $type->fill($input);
+        // dd($type);
+        $type->save();
     }
     public function delete_ordertype(Request $request)
     {

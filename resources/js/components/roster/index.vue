@@ -124,7 +124,7 @@
                     <td v-for="(day, index) in emp.data" :key="index"  @mouseover="show_note?show_card(emp,day):''" @mouseleave="show_note?hide_card(emp,day):''" >
                         <div class="cell ">
                             <div class="dd_head">
-                            <div v-if="day.type_shift!='*'&&day.show&&show_note&&show_tempnote"   class="dd_ul animate__animated animate__fadeIn animate__fast" :style="'width:200px;position:absolute;padding:10px;margin-right:-170px;margin-top:-'+'150'+'px'">
+                            <div v-if="day.type_shift!='*'&&day.show&&show_note&&show_tempnote"   class="dd_ul animate__animated animate__fadeIn animate__fast" :class="index<20?'popleft':'popright'">
                     <div class="right" @click="show_tempnote=false">X</div>
                                <li class="badge white">
                                     {{day.tanggal| formatDate}}
@@ -306,14 +306,15 @@ export default {
         let kerja_in = 0;
         let kerja_count = 0;
         element.forEach((ele) => {
-          if (ele.cin_diff) {
-            telat_in_count++;
-          }
-          if (ele.cout_diff) {
-            telat_out_count++;
-          }
+          // if (ele.cin_diff && ele.cin_diff<0) {
+            
+          // }
+          // if (ele.cout_diff && ele.cout_diff<0) {
+            
+          // }
           //console.log(ele.cin_diff.split('')[0]);
           if (ele.cin_diff && ele.cin_diff.split("")[0] == "-") {
+            telat_in_count++;
             let telat_in = ele.cin_diff.substring(1).split(":");
             // console.log(telat_in);
             telat_hr_in +=
@@ -324,6 +325,7 @@ export default {
             // console.log(telat_hr_in+'updateing ...')
           }
           if (ele.cout_diff && ele.cout_diff.split("")[0] == "-") {
+            telat_out_count++;
             let telat_out = ele.cout_diff.substring(1).split(":");
             //console.log(telat_out);
 
@@ -347,27 +349,64 @@ export default {
             //           let cout= (1000*(parseInt(kout[0])*60*60)+(parseInt(kout[1])*60));
             //           kerja_in += (cout-cin)
           }
+          let temp_ele = {
+          tgl: ele.tgl,
+          dinas: ele.dinas,
+          masuk: ele.rin,
+          pulang: ele.rout,
+          'jam masuk': ele.cin,
+          'jam pulang': ele.cout,
+          'telat datang': ele.cin_diff.split("")[0] == "-"?ele.cin_diff:'-',
+          'cepat pulang': ele.cout_diff.split("")[0] == "-"?ele.cout_diff:'-',
+          'jam kerja' : ele.jam_kerja
+        };
+        ele={};
+        ele=temp_ele;
         });
+
         let temp = {
           tgl: " Rata2 ",
-          dinas: "-",
-          rin: "-",
-          rout: "-",
-          cin: "-",
-          cout: "-",
-          cin_diff: "-",
-          cout_diff: "-",
+          dinas:'-',
+           masuk: '-',
+          pulang: '-',
+          'jam masuk': '-',
+          'jam pulang': '-',
+          'telat datang': '-',
+          'cepat pulang': '-',
+          'jam kerja':'-'
         };
         // this.Datas[i].push(temp);
         // //console.log(element);
-        console.log(kerja_count + " is the count");
-        console.log(telat_hr_in + " in milli");
-        console.log(telat_hr_out + " out milli");
-        console.log(kerja_in + " kerja milli");
-        console.log(kerja_count + " is the count");
-        temp.cin_diff = this.timedetails(telat_hr_in / telat_in_count);
-        temp.cout_diff = this.timedetails(telat_hr_out / telat_out_count);
-        temp.jam_kerja = this.timedetails(kerja_in / kerja_count);
+        // console.log(kerja_count + " is the count");
+        // console.log(telat_hr_in + " in milli");
+        // console.log(telat_hr_out + " out milli");
+        // console.log(kerja_in + " kerja milli");
+        // console.log(kerja_count + " is the count");
+        temp['telat datang'] = this.timedetails(telat_hr_in / telat_in_count);
+        temp['cepat pulang'] = this.timedetails(telat_hr_out / telat_out_count);
+        temp['jam kerja'] = this.timedetails(kerja_in / kerja_count);
+        element.push(temp);
+         temp = {
+          tgl: " Total ",
+          dinas:'-',
+           masuk: '-',
+          pulang: '-',
+          'jam masuk': '-',
+          'jam pulang': '-',
+          'telat datang': '-',
+          'cepat pulang': '-',
+          'jam kerja':'-'
+        };
+        // this.Datas[i].push(temp);
+        // //console.log(element);
+        // console.log(kerja_count + " is the count");
+        // console.log(telat_hr_in + " in milli");
+        // console.log(telat_hr_out + " out milli");
+        // console.log(kerja_in + " kerja milli");
+        // console.log(kerja_count + " is the count");
+        temp['telat datang'] = this.timedetails(telat_hr_in) + ' ('+telat_in_count +' hari Telat Masuk)';
+        temp['cepat pulang'] = this.timedetails(telat_hr_out ) + ' ('+telat_out_count +' hari Cepat Pulang)';
+        temp['jam kerja'] = this.timedetails(kerja_in );
         element.push(temp);
       });
       var wb = XLSX.utils.book_new();
@@ -467,7 +506,7 @@ export default {
           // });
           var uniqueNames = [];
           element.shift_code.split(",").forEach((el) => {
-            if (uniqueNames.includes(el) === -1) uniqueNames.push(el);
+            if (!uniqueNames.includes(el)) uniqueNames.push(el);
           });
 
           let temp_ele = {
@@ -479,21 +518,21 @@ export default {
               ? new Date(element.c_in).getHours() +
                 ":" +
                 new Date(element.c_in).getMinutes()
-              : "",
+              : "A",
             cout: element.c_out
               ? new Date(element.c_out).getHours() +
                 ":" +
                 new Date(element.c_out).getMinutes()
-              : "",
+              : "A",
             //   jin: element.masuk_timestamp,
             //   cout: new Date(element.c_out),
             //   jout: element.keluar_timestamp,
-            cin_diff: element.c_in ? diff_cin : "",
-            cout_diff: element.c_out ? diff_cout : "",
+            cin_diff: element.c_in ? diff_cin : "A",
+            cout_diff: element.c_out ? diff_cout : "A",
             jam_kerja:
               element.c_in && element.c_out
                 ? this.timedetails(element.c_out - element.c_in)
-                : "",
+                : "A",
           };
           this.cur_evaluateddata.push(temp_ele);
         });
@@ -1329,6 +1368,13 @@ export default {
 };
 </script>
 <style>
+.popleft{
+  width:300px;position:absolute;padding:10px;margin-right:-300px;margin-top:-150px !important
+}
+.popright{
+  width:300px;position:absolute;padding:10px;margin-left:-300px;margin-top:-150px !important
+  
+}
 .dd_li:hover {
   background-color: rgb(228, 141, 250, 0.3);
   cursor: pointer;

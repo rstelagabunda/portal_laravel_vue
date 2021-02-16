@@ -93,6 +93,11 @@ class rosterController extends Controller
                             // if (!array_key_exists('functional', $rec)) {
                             //     // dd($rec);
                             // }
+                            // if($rec["shift_code"]=='M'){
+                            //     print($milli_datetime);
+                            //     print_r($data);
+                            //     dd($rec);
+                            // }
                             if (array_key_exists('functional', $rec) && $rec["functional"] == "1") {
                                 $roster = $roster_present;
                                 if ($data["status"] == "C/In") {
@@ -132,6 +137,19 @@ class rosterController extends Controller
                                         } else {
                                             $suitable_obj_out = $rec;
                                         }
+                                    } else {
+                                        // print_r($roster_pre);
+                                        if (isset($roster_pre->mix)) {
+
+                                            if ($roster_pre["mix"] == 1) {
+                                                $is_functional_0 = true;  
+                                            }
+                                            //              if(false && $roster_pre->mix=='1' ){
+                                            // print($milli_datetime);
+                                            // print_r($data);
+                                            // dd($roster_pre);
+                                            //              }
+                                        }
                                     }
                                     // echo 'suitable out';
                                     // dd($suitable_obj_out);
@@ -149,30 +167,26 @@ class rosterController extends Controller
                         foreach ($j_datetime as $key => $rec) {
                             if ($data["status"] == "C/Out") {
                                 if ($rec == $suitable_obj_out) {
-                                    if($j_datetime[$key]["c_out"])
-                                    {
-                                        if($j_datetime[$key]["c_out"]<$milli_datetime){
+                                    if ($j_datetime[$key]["c_out"]) {
+                                        if ($j_datetime[$key]["c_out"] < $milli_datetime) {
                                             $j_datetime[$key]["c_out"] = $milli_datetime;
-                                            $roster["json_datetime"] = json_encode($j_datetime);  
+                                            $roster["json_datetime"] = json_encode($j_datetime);
                                         }
-                                    }
-                                    else{
-                                    $j_datetime[$key]["c_out"] = $milli_datetime;
-                                    $roster["json_datetime"] = json_encode($j_datetime);
+                                    } else {
+                                        $j_datetime[$key]["c_out"] = $milli_datetime;
+                                        $roster["json_datetime"] = json_encode($j_datetime);
                                     }
                                 }
                             } else if ($data["status"] == "C/In") {
                                 if ($rec == $suitable_obj_in) {
-                                    if($j_datetime[$key]["c_in"])
-                                    {
-                                        if($j_datetime[$key]["c_in"]>$milli_datetime){
+                                    if ($j_datetime[$key]["c_in"]) {
+                                        if ($j_datetime[$key]["c_in"] > $milli_datetime) {
                                             $j_datetime[$key]["c_in"] = $milli_datetime;
-                                            $roster["json_datetime"] = json_encode($j_datetime);  
+                                            $roster["json_datetime"] = json_encode($j_datetime);
                                         }
-                                    }
-                                    else{
-                                    $j_datetime[$key]["c_in"] = $milli_datetime;
-                                    $roster["json_datetime"] = json_encode($j_datetime);
+                                    } else {
+                                        $j_datetime[$key]["c_in"] = $milli_datetime;
+                                        $roster["json_datetime"] = json_encode($j_datetime);
                                     }
                                 }
                             }
@@ -180,26 +194,40 @@ class rosterController extends Controller
                         }
                         // dd($roster["json_datetime"]);
 
-                        if (($is_functional_0 && count($j_datetime) <= 1)  && $data["status"] == "C/Out") {
-                            $roster = $roster_pre;
-                            // $roster->c_out = $datetimes;
-                            $j_datetime_p = json_decode($roster_pre->json_datetime, true);
-                            if (count($j_datetime_p) > 0) {
-                                $j_datetime_p[count($j_datetime_p) - 1]["c_out"] = $milli_datetime;
+                        
+                    }
+                    else{
+                        if (isset($roster_pre->mix)) {
 
-                                $roster["json_datetime"] = json_encode($j_datetime_p);
-                                if ($roster) {
-                                    $roster->save();
-                                }
+                            if ($roster_pre["mix"] == 1) {
+                                $is_functional_0 = true;  
+                            }
+                            //              if(false && $roster_pre->mix=='1' ){
+                            // print($milli_datetime);
+                            // print_r($data);
+                            // dd($roster_pre);
+                            //              }
+                        }
+                    }
+                    if (($is_functional_0 && count($j_datetime) <= 1)  && $data["status"] == "C/Out") {
+                        $roster = $roster_pre;
+                        // $roster->c_out = $datetimes;
+                        $j_datetime_p = json_decode($roster_pre->json_datetime, true);
+                        if (count($j_datetime_p) > 0) {
+                            $j_datetime_p[count($j_datetime_p) - 1]["c_out"] = $milli_datetime;
+
+                            $roster["json_datetime"] = json_encode($j_datetime_p);
+                            if ($roster) {
+                                $roster->save();
                             }
                         }
-                        if ($roster["emp_id"] == "76") {
-                            echo (json_encode($roster));
-                        }
+                    }
+                    // if ($roster["emp_id"] == "76") {
+                    //     echo (json_encode($roster));
+                    // }
 
-                        if ($roster) {
-                            $roster->save();
-                        }
+                    if ($roster) {
+                        $roster->save();
                     }
                 }
             }
@@ -217,7 +245,7 @@ class rosterController extends Controller
     }
     public function get_allshift(Request $request)
     {
-        $shifts = shift::where('type', $request['type'])->orWhere('type', '*')->orderBy('type','desc')->get();
+        $shifts = shift::where('type', $request['type'])->orWhere('type', '*')->orderBy('type', 'desc')->get();
         return response()->json(
             [
                 "data" => $shifts
@@ -292,8 +320,7 @@ class rosterController extends Controller
             // dd($roster);
             $roster->save();
         }
-            sleep(1);
-
+        sleep(1);
     }
     public function update_roster(Request $request)
     {
